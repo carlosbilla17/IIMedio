@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neurona: Potencial de Reposo y Acción</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Fredoka+One&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --lavender: #c9b8e8;
+    --mint: #b5e8d5;
+    --peach: #f5c9b0;
+    --sky: #b8d8f0;
+    --rose: #f0b8c8;
+    --lemon: #f0e8a0;
+    --cream: #faf6f0;
+    --text: #3a3550;
+    --text-light: #6b6585;
+    --card-shadow: 0 4px 20px rgba(100,80,160,0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* FLOATING BUBBLES BG */
+  .bg-bubbles {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    overflow: hidden;
+  }
+  .bubble {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.18;
+    animation: floatBubble linear infinite;
+  }
+  @keyframes floatBubble {
+    0% { transform: translateY(110vh) scale(0.8); }
+    100% { transform: translateY(-20vh) scale(1.2); }
+  }
+
+  /* HEADER */
+  .header {
+    position: relative; z-index: 10;
+    background: linear-gradient(135deg, #e8d5f5 0%, #d0e8f8 50%, #d5f0e8 100%);
+    padding: 18px 24px 14px;
+    display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 2px 16px rgba(150,120,200,0.15);
+    flex-wrap: wrap; gap: 12px;
+  }
+  .header-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.5rem;
+    color: #5a3d8a;
+    letter-spacing: 0.5px;
+  }
+  .header-sub {
+    font-size: 0.78rem;
+    color: var(--text-light);
+    margin-top: 2px;
+  }
+  .timer-box {
+    background: white;
+    border-radius: 16px;
+    padding: 10px 20px;
+    text-align: center;
+    box-shadow: var(--card-shadow);
+    min-width: 130px;
+  }
+  .timer-label { font-size: 0.65rem; color: var(--text-light); letter-spacing: 1px; text-transform: uppercase; }
+  .timer-display {
+    font-family: 'Fredoka One', cursive;
+    font-size: 2rem;
+    color: #7a4fb0;
+    line-height: 1;
+  }
+  .timer-display.warning { color: #e05a5a; animation: pulse 0.8s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
+  .timer-btn {
+    margin-top: 6px;
+    background: var(--lavender);
+    border: none; border-radius: 10px;
+    padding: 4px 14px; font-size: 0.75rem;
+    font-family: 'Nunito', sans-serif; font-weight: 700;
+    cursor: pointer; color: #5a3d8a;
+    transition: background 0.2s, transform 0.1s;
+  }
+  .timer-btn:hover { background: #b8a0e0; transform: scale(1.03); }
+
+  /* PROGRESS NAV */
+  .nav-bar {
+    position: relative; z-index: 10;
+    background: white;
+    padding: 12px 20px;
+    display: flex; gap: 8px; overflow-x: auto;
+    border-bottom: 2px solid #f0e8f8;
+    scrollbar-width: thin;
+  }
+  .nav-btn {
+    border: none; border-radius: 20px;
+    padding: 7px 16px; font-size: 0.8rem;
+    font-family: 'Nunito', sans-serif; font-weight: 700;
+    cursor: pointer; white-space: nowrap;
+    transition: all 0.2s;
+    background: #f0eaf8; color: var(--text-light);
+  }
+  .nav-btn.active { background: var(--lavender); color: #5a3d8a; transform: scale(1.05); }
+  .nav-btn.done { background: var(--mint); color: #2a7a5a; }
+
+  /* MAIN CONTENT */
+  .main { position: relative; z-index: 5; max-width: 860px; margin: 0 auto; padding: 24px 16px 80px; }
+
+  /* SECTION CARDS */
+  .section-card {
+    display: none;
+    animation: slideIn 0.4s ease;
+  }
+  .section-card.active { display: block; }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .card {
+    background: white;
+    border-radius: 20px;
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: var(--card-shadow);
+    border-left: 5px solid var(--lavender);
+  }
+  .card.mint { border-left-color: var(--mint); }
+  .card.peach { border-left-color: var(--peach); }
+  .card.sky { border-left-color: var(--sky); }
+  .card.rose { border-left-color: var(--rose); }
+  .card.lemon { border-left-color: var(--lemon); }
+
+  .card-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.25rem;
+    color: #5a3d8a;
+    margin-bottom: 14px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .card-icon { font-size: 1.5rem; }
+
+  .key-fact {
+    background: linear-gradient(135deg, #f0eaf8, #e8f5ff);
+    border-radius: 14px;
+    padding: 14px 18px;
+    margin: 12px 0;
+    font-size: 0.92rem;
+    line-height: 1.6;
+    border: 1.5px dashed var(--lavender);
+  }
+  .highlight { background: var(--lemon); padding: 1px 6px; border-radius: 6px; font-weight: 700; }
+  .highlight.pink { background: #fcd8e8; }
+  .highlight.green { background: #c8f0e0; }
+  .highlight.blue { background: #c8e8f8; }
+
+  /* ION TABLE */
+  .ion-table {
+    width: 100%; border-collapse: collapse; margin: 14px 0;
+    font-size: 0.88rem;
+  }
+  .ion-table th {
+    background: var(--lavender); color: #5a3d8a;
+    padding: 10px 12px; text-align: left;
+    font-family: 'Fredoka One', cursive; font-weight: 400;
+    font-size: 0.9rem;
+  }
+  .ion-table th:first-child { border-radius: 12px 0 0 0; }
+  .ion-table th:last-child { border-radius: 0 12px 0 0; }
+  .ion-table td {
+    padding: 9px 12px;
+    border-bottom: 1px solid #f0eaf8;
+  }
+  .ion-table tr:nth-child(even) td { background: #faf8ff; }
+  .ion-table tr:last-child td:first-child { border-radius: 0 0 0 12px; }
+  .ion-table tr:last-child td:last-child { border-radius: 0 0 12px 0; }
+
+  /* POTENTIAL DIAGRAM */
+  .diagram-wrap {
+    background: #f8f4ff;
+    border-radius: 16px;
+    padding: 20px;
+    margin: 14px 0;
+    text-align: center;
+  }
+  svg.pot-diagram { max-width: 100%; height: auto; }
+
+  /* QUIZ */
+  .quiz-q {
+    background: linear-gradient(135deg, #fff0f8, #f8f0ff);
+    border-radius: 16px;
+    padding: 18px 20px;
+    margin: 14px 0;
+    border: 1.5px solid var(--rose);
+  }
+  .quiz-q .q-text {
+    font-weight: 700; font-size: 0.95rem; margin-bottom: 14px;
+    color: #5a3d8a;
+  }
+  .quiz-options { display: flex; flex-direction: column; gap: 8px; }
+  .quiz-opt {
+    background: white;
+    border: 2px solid #e8e0f8;
+    border-radius: 12px;
+    padding: 10px 16px;
+    cursor: pointer;
+    font-size: 0.88rem;
+    font-family: 'Nunito', sans-serif;
+    text-align: left;
+    transition: all 0.18s;
+    color: var(--text);
+  }
+  .quiz-opt:hover { border-color: var(--lavender); background: #faf5ff; transform: translateX(4px); }
+  .quiz-opt.correct { background: #d0f5e8; border-color: #60c090; color: #1a6040; }
+  .quiz-opt.wrong { background: #fde8e8; border-color: #e06060; color: #802020; }
+  .quiz-feedback {
+    margin-top: 10px; padding: 10px 14px;
+    border-radius: 10px; font-size: 0.88rem; font-weight: 600;
+    display: none;
+  }
+  .quiz-feedback.show { display: block; }
+  .quiz-feedback.ok { background: #d0f5e8; color: #1a6040; }
+  .quiz-feedback.no { background: #fde8e8; color: #802020; }
+
+  /* MEMORY GAME */
+  .memory-game {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 10px; margin: 14px 0;
+  }
+  .mem-card {
+    aspect-ratio: 1;
+    border-radius: 14px;
+    background: var(--lavender);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.72rem; font-weight: 700;
+    color: #5a3d8a;
+    text-align: center; padding: 6px;
+    transition: all 0.25s;
+    border: 2px solid transparent;
+    line-height: 1.3;
+    user-select: none;
+    position: relative; overflow: hidden;
+  }
+  .mem-card .back {
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, #c9b8e8, #b8c8e8);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem;
+    transition: opacity 0.25s;
+  }
+  .mem-card.flipped .back { opacity: 0; pointer-events: none; }
+  .mem-card.matched { background: var(--mint); border-color: #60c090; cursor: default; }
+  .mem-game-status { text-align: center; font-size: 0.9rem; color: var(--text-light); margin: 8px 0; }
+
+  /* FLASHCARDS */
+  .flashcard-wrap { perspective: 800px; margin: 14px 0; }
+  .flashcard {
+    width: 100%; min-height: 160px;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.5s;
+    cursor: pointer;
+  }
+  .flashcard.flipped { transform: rotateY(180deg); }
+  .flashcard-face {
+    position: absolute; inset: 0;
+    border-radius: 18px;
+    display: flex; align-items: center; justify-content: center;
+    text-align: center; padding: 24px;
+    backface-visibility: hidden;
+    font-size: 1rem;
+    flex-direction: column; gap: 10px;
+  }
+  .flashcard-front {
+    background: linear-gradient(135deg, #e8d5f8, #d5e8f8);
+    color: #5a3d8a; font-weight: 700; font-size: 1.05rem;
+  }
+  .flashcard-back {
+    background: linear-gradient(135deg, #d5f0e8, #f0f5c8);
+    color: #2a5a40; font-size: 0.92rem;
+    transform: rotateY(180deg);
+  }
+  .flash-hint { font-size: 0.72rem; color: var(--text-light); margin-top: 8px; }
+  .flash-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+  .flash-btn {
+    background: var(--sky); border: none; border-radius: 12px;
+    padding: 8px 18px; font-family: 'Nunito', sans-serif; font-weight: 700;
+    cursor: pointer; color: #2a5080; font-size: 0.85rem;
+    transition: all 0.2s;
+  }
+  .flash-btn:hover { background: #a0ccee; transform: scale(1.04); }
+  .flash-counter { font-size: 0.8rem; color: var(--text-light); }
+
+  /* STEPS / PROCESS */
+  .steps-wrap { counter-reset: step; }
+  .step-item {
+    display: flex; gap: 14px; margin: 12px 0; align-items: flex-start;
+  }
+  .step-num {
+    min-width: 36px; height: 36px;
+    background: var(--lavender); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Fredoka One', cursive; font-size: 1rem; color: #5a3d8a;
+    flex-shrink: 0;
+  }
+  .step-text { font-size: 0.9rem; line-height: 1.6; padding-top: 6px; }
+
+  /* NAV BOTTOM BTNS */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 20;
+    background: white;
+    border-top: 2px solid #f0e8f8;
+    padding: 12px 20px;
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 12px;
+  }
+  .btn-nav {
+    border: none; border-radius: 14px;
+    padding: 11px 26px; font-size: 0.9rem;
+    font-family: 'Nunito', sans-serif; font-weight: 800;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn-prev { background: #f0eaf8; color: var(--text-light); }
+  .btn-prev:hover { background: var(--lavender); color: #5a3d8a; }
+  .btn-next { background: var(--lavender); color: #5a3d8a; }
+  .btn-next:hover { background: #b8a0e0; transform: scale(1.03); }
+  .section-indicator { font-size: 0.8rem; color: var(--text-light); text-align: center; }
+
+  /* SOUND BTN */
+  .sound-toggle {
+    position: fixed; bottom: 70px; right: 16px; z-index: 30;
+    background: white; border: 2px solid var(--lavender);
+    border-radius: 50%; width: 44px; height: 44px;
+    font-size: 1.2rem; cursor: pointer;
+    box-shadow: var(--card-shadow);
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+  }
+  .sound-toggle:hover { background: var(--lavender); }
+
+  /* RESPONSIVE */
+  @media (max-width: 500px) {
+    .memory-game { grid-template-columns: repeat(4, 1fr); gap: 7px; }
+    .mem-card { font-size: 0.6rem; }
+    .header-title { font-size: 1.2rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- BG BUBBLES -->
+<div class="bg-bubbles" id="bgBubbles"></div>
+
+<!-- HEADER -->
+<div class="header">
+  <div>
+    <div class="header-title">🧠 Neurona: Potencial de Reposo y Acción</div>
+    <div class="header-sub">Biología · Repaso 30 minutos · Prof. Carlos Villa</div>
+  </div>
+  <div class="timer-box">
+    <div class="timer-label">⏱ Tiempo</div>
+    <div class="timer-display" id="timerDisplay">30:00</div>
+    <button class="timer-btn" id="timerBtn" onclick="toggleTimer()">▶ Iniciar</button>
+  </div>
+</div>
+
+<!-- NAV BAR -->
+<div class="nav-bar" id="navBar"></div>
+
+<!-- MAIN -->
+<div class="main" id="mainContent"></div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <button class="btn-nav btn-prev" onclick="navigate(-1)">← Anterior</button>
+  <div class="section-indicator" id="sectionIndicator">1 / 6</div>
+  <button class="btn-nav btn-next" onclick="navigate(1)">Siguiente →</button>
+</div>
+
+<!-- SOUND TOGGLE -->
+<button class="sound-toggle" id="soundToggle" onclick="toggleSound()" title="Sonido">🔊</button>
+
+<script>
+// ═══════════════════════════════════════
+//  DATA
+// ═══════════════════════════════════════
+const sections = [
+  {
+    id: 'reposo',
+    title: '1. Potencial de Reposo',
+    emoji: '⚡',
+    color: 'lavender',
+    navColor: ''
+  },
+  {
+    id: 'bomba',
+    title: '2. Bomba Na⁺/K⁺',
+    emoji: '🔄',
+    color: 'mint',
+    navColor: ''
+  },
+  {
+    id: 'accion',
+    title: '3. Potencial de Acción',
+    emoji: '🌊',
+    color: 'peach',
+    navColor: ''
+  },
+  {
+    id: 'ley',
+    title: '4. Ley Todo o Nada',
+    emoji: '💥',
+    color: 'sky',
+    navColor: ''
+  },
+  {
+    id: 'flashcards',
+    title: '5. Flashcards',
+    emoji: '🃏',
+    color: 'rose',
+    navColor: ''
+  },
+  {
+    id: 'quiz',
+    title: '6. Quiz Final',
+    emoji: '✏️',
+    color: 'lemon',
+    navColor: ''
+  }
+];
+
+const flashcardsData = [
+  { front: '¿Cuál es el valor del potencial de reposo en una neurona?', back: '-70 mV\n(interior negativo respecto al exterior)' },
+  { front: '¿Qué ion es MÁS concentrado DENTRO de la neurona en reposo?', back: 'K⁺ (Potasio)\nEstá más concentrado intracelularmente' },
+  { front: '¿Qué ion es MÁS concentrado FUERA de la neurona en reposo?', back: 'Na⁺ (Sodio)\nEstá más concentrado extracelularmente' },
+  { front: '¿Cuántos Na⁺ saca y K⁺ mete la bomba sodio-potasio?', back: 'Saca 3 Na⁺\nMete 2 K⁺\n(por cada ciclo, gasta 1 ATP)' },
+  { front: '¿Qué ocurre si la bomba Na⁺/K⁺ deja de funcionar?', back: 'Las concentraciones iónicas se alteran progresivamente\nSe pierde el potencial de reposo' },
+  { front: '¿Cuál es la fase de repolarización en el potencial de acción?', back: 'Repolarización → Reposo\nEl interior vuelve a -70 mV' },
+  { front: '¿Qué es la Ley del Todo o Nada?', back: 'Si el estímulo supera el umbral, el potencial de acción se dispara completo.\nSi no lo supera, no ocurre nada.' },
+  { front: '¿Qué característica describe MEJOR el potencial de reposo?', back: 'Interior de la neurona más negativo que el exterior\nEl ion cloro (Cl⁻) también contribuye' },
+];
+
+const quizData = [
+  {
+    q: '¿Qué estructura permite acelerar la conducción del impulso nervioso?',
+    opts: ['A) Dendritas', 'B) Vesículas sinápticas', 'C) Daño axónico', 'D) Vaina de mielina'],
+    ans: 3,
+    exp: '✅ La vaina de mielina actúa como aislante y permite la conducción saltatoria, acelerando el impulso.'
+  },
+  {
+    q: '¿Qué ocurre si la bomba sodio-potasio deja de funcionar?',
+    opts: ['A) Se mantiene estable el potencial de reposo', 'B) Las concentraciones iónicas se alteran progresivamente', 'C) Entraría más glucosa a la célula', 'D) Aumentaría la síntesis de ATP'],
+    ans: 1,
+    exp: '✅ Sin la bomba, los gradientes iónicos se pierden gradualmente y el potencial de reposo desaparece.'
+  },
+  {
+    q: '¿Cuál es el principal ion en mayor concentración DENTRO de la neurona durante el potencial de reposo?',
+    opts: ['A) Sodio (Na⁺)', 'B) Potasio (K⁺)', 'C) Cloro (Cl⁻)', 'D) Calcio (Ca²⁺)'],
+    ans: 1,
+    exp: '✅ El K⁺ está más concentrado intracelularmente. El Na⁺ es más concentrado fuera.'
+  },
+  {
+    q: '¿Cuál de los siguientes representa correctamente las etapas del potencial de acción?',
+    opts: ['A) Repolarización → Despolarización → Reposo', 'B) Reposo → Despolarización → Hiperpolarización → Repolarización', 'C) Despolarización → Reposo → Repolarización', 'D) Hiperpolarización → Reposo → Despolarización'],
+    ans: 1,
+    exp: '✅ El orden correcto: Reposo → Despolarización → Repolarización → Hiperpolarización → vuelta al Reposo'
+  },
+  {
+    q: 'Un científico registra un potencial de membrana de -85 mV. ¿Qué cambio ocurrió?',
+    opts: ['A) Hiperpolarización', 'B) Polarización normal', 'C) Despolarización', 'D) Período refractario'],
+    ans: 0,
+    exp: '✅ Un valor más negativo que -70 mV indica Hiperpolarización (el interior se volvió aún más negativo).'
+  },
+  {
+    q: 'Si el ATP mitocondrial disminuye en una neurona, ¿cuál sería el efecto más directo?',
+    opts: ['A) La disfunción de la bomba Na⁺/K⁺ altera los gradientes iónicos', 'B) El cloro provoca entrada masiva de potasio generando hiperpolarización', 'C) El potencial de reposo se estabiliza más', 'D) Se incrementa la síntesis de neurotransmisores'],
+    ans: 0,
+    exp: '✅ La bomba Na⁺/K⁺ requiere ATP. Sin ATP, los gradientes iónicos colapsan y el potencial de reposo se pierde.'
+  }
+];
+
+// ═══════════════════════════════════════
+//  TIMER
+// ═══════════════════════════════════════
+let timerSecs = 30 * 60;
+let timerRunning = false;
+let timerInterval = null;
+
+function toggleTimer() {
+  timerRunning = !timerRunning;
+  document.getElementById('timerBtn').textContent = timerRunning ? '⏸ Pausar' : '▶ Continuar';
+  if (timerRunning) {
+    timerInterval = setInterval(() => {
+      if (timerSecs <= 0) {
+        clearInterval(timerInterval);
+        timerRunning = false;
+        document.getElementById('timerBtn').textContent = '⏰ ¡Tiempo!';
+        playBeep(880, 0.3, 'sine');
+        setTimeout(() => playBeep(660, 0.3, 'sine'), 350);
+        setTimeout(() => playBeep(440, 0.5, 'square'), 700);
+        return;
+      }
+      timerSecs--;
+      updateTimerDisplay();
+    }, 1000);
+  } else {
+    clearInterval(timerInterval);
+  }
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(timerSecs / 60).toString().padStart(2, '0');
+  const s = (timerSecs % 60).toString().padStart(2, '0');
+  const el = document.getElementById('timerDisplay');
+  el.textContent = `${m}:${s}`;
+  el.classList.toggle('warning', timerSecs < 300);
+}
+
+// ═══════════════════════════════════════
+//  SOUND
+// ═══════════════════════════════════════
+let soundOn = true;
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let actx = null;
+
+function getACtx() {
+  if (!actx) actx = new AudioCtx();
+  return actx;
+}
+
+function playBeep(freq, dur, type = 'sine', vol = 0.25) {
+  if (!soundOn) return;
+  try {
+    const ctx = getACtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = type; osc.frequency.value = freq;
+    gain.gain.setValueAtTime(vol, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+    osc.start(); osc.stop(ctx.currentTime + dur);
+  } catch(e) {}
+}
+
+function playSuccess() { playBeep(523, 0.12); setTimeout(() => playBeep(659, 0.12), 130); setTimeout(() => playBeep(784, 0.25), 260); }
+function playError() { playBeep(300, 0.18, 'sawtooth', 0.15); setTimeout(() => playBeep(250, 0.25, 'sawtooth', 0.12), 200); }
+function playClick() { playBeep(660, 0.08, 'sine', 0.15); }
+function playFlip() { playBeep(440, 0.1, 'triangle', 0.18); }
+function playNav() { playBeep(550, 0.09, 'sine', 0.12); }
+
+function toggleSound() {
+  soundOn = !soundOn;
+  document.getElementById('soundToggle').textContent = soundOn ? '🔊' : '🔇';
+}
+
+// ═══════════════════════════════════════
+//  SECTIONS CONTENT
+// ═══════════════════════════════════════
+function buildContent() {
+  return [
+    // 0: REPOSO
+    `
+    <div class="card">
+      <div class="card-title"><span class="card-icon">⚡</span>Potencial de Reposo</div>
+      <div class="key-fact">El potencial de reposo es la <span class="highlight">diferencia de carga eléctrica</span> entre el interior y el exterior de la neurona cuando <b>NO está transmitiendo señales</b>.</div>
+      <div class="key-fact">Valor típico: <span class="highlight">-70 mV</span> (el interior es más negativo que el exterior)</div>
+      <table class="ion-table">
+        <tr><th>Ion</th><th>Más concentrado EN</th><th>Carga</th></tr>
+        <tr><td>🟡 Na⁺ (Sodio)</td><td>FUERA de la célula</td><td>Positivo (+)</td></tr>
+        <tr><td>🟢 K⁺ (Potasio)</td><td>DENTRO de la célula</td><td>Positivo (+)</td></tr>
+        <tr><td>🔵 Cl⁻ (Cloro)</td><td>FUERA de la célula</td><td>Negativo (−)</td></tr>
+        <tr><td>🔴 Proteínas</td><td>DENTRO de la célula</td><td>Negativo (−)</td></tr>
+      </table>
+      <div class="key-fact">💡 <b>Truco para recordar:</b> <span class="highlight green">K⁺ adentro</span>, <span class="highlight blue">Na⁺ afuera</span>. Es lo contrario a lo intuitivo.</div>
+    </div>
+    <div class="card mint">
+      <div class="card-title"><span class="card-icon">🔍</span>Características del Potencial de Reposo</div>
+      <div class="steps-wrap">
+        <div class="step-item"><div class="step-num">1</div><div class="step-text">El <b>exterior</b> de la neurona es <span class="highlight">positivo</span> respecto al interior → correcto ✅</div></div>
+        <div class="step-item"><div class="step-num">2</div><div class="step-text">Los <b>canales de Na⁺</b> están mayormente <span class="highlight pink">cerrados</span> en reposo</div></div>
+        <div class="step-item"><div class="step-num">3</div><div class="step-text">Los <b>canales de K⁺</b> tienen cierta permeabilidad en reposo (permiten algo de filtración)</div></div>
+        <div class="step-item"><div class="step-num">4</div><div class="step-text">La neurona <span class="highlight">NO transmite impulsos</span> continuamente — eso es la excitación, no el reposo</div></div>
+      </div>
+    </div>`,
+
+    // 1: BOMBA
+    `
+    <div class="card mint">
+      <div class="card-title"><span class="card-icon">🔄</span>Bomba Sodio-Potasio (Na⁺/K⁺ ATPasa)</div>
+      <div class="key-fact">La bomba Na⁺/K⁺ es una proteína de membrana que usa <span class="highlight">ATP</span> para mover iones contra su gradiente de concentración.</div>
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 420 180" class="pot-diagram" xmlns="http://www.w3.org/2000/svg">
+          <!-- membrane -->
+          <rect x="0" y="80" width="420" height="20" fill="#c9b8e8" rx="4"/>
+          <text x="210" y="93" text-anchor="middle" font-size="11" fill="#5a3d8a" font-family="Nunito,sans-serif" font-weight="700">MEMBRANA PLASMÁTICA</text>
+          <!-- exterior -->
+          <text x="210" y="30" text-anchor="middle" font-size="12" fill="#3a3550" font-family="Nunito,sans-serif">EXTERIOR (más positivo)</text>
+          <!-- 3 Na+ leaving -->
+          <text x="60" y="55" text-anchor="middle" font-size="16">🟡🟡🟡</text>
+          <text x="60" y="68" text-anchor="middle" font-size="10" fill="#805020" font-family="Nunito,sans-serif">3 Na⁺ SALEN →</text>
+          <!-- 2 K+ entering -->
+          <text x="340" y="55" text-anchor="middle" font-size="16">🟢🟢</text>
+          <text x="340" y="68" text-anchor="middle" font-size="10" fill="#205040" font-family="Nunito,sans-serif">← 2 K⁺ ENTRAN</text>
+          <!-- pump -->
+          <rect x="170" y="65" width="80" height="50" fill="#b5e8d5" rx="12" stroke="#60c090" stroke-width="2"/>
+          <text x="210" y="88" text-anchor="middle" font-size="10" font-weight="700" fill="#2a7a5a" font-family="Nunito,sans-serif">BOMBA</text>
+          <text x="210" y="102" text-anchor="middle" font-size="10" fill="#2a7a5a" font-family="Nunito,sans-serif">Na⁺/K⁺</text>
+          <!-- ATP -->
+          <text x="210" y="125" text-anchor="middle" font-size="11" fill="#805050" font-family="Nunito,sans-serif" font-weight="700">▼ 1 ATP</text>
+          <!-- interior -->
+          <text x="210" y="165" text-anchor="middle" font-size="12" fill="#3a3550" font-family="Nunito,sans-serif">INTERIOR (más negativo)</text>
+          <!-- arrows -->
+          <path d="M 130 72 L 175 82" stroke="#c07020" stroke-width="1.5" fill="none" marker-end="url(#arrowO)"/>
+          <path d="M 295 82 L 250 72" stroke="#20a060" stroke-width="1.5" fill="none" marker-end="url(#arrowG)"/>
+          <defs>
+            <marker id="arrowO" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#c07020"/></marker>
+            <marker id="arrowG" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#20a060"/></marker>
+          </defs>
+        </svg>
+      </div>
+      <div class="key-fact">📌 <b>Regla de oro:</b> Saca <span class="highlight">3 Na⁺</span> (afuera) | Mete <span class="highlight green">2 K⁺</span> (adentro) | Gasta <span class="highlight pink">1 ATP</span></div>
+    </div>
+    <div class="card sky">
+      <div class="card-title"><span class="card-icon">❓</span>¿Qué pasa si la bomba falla?</div>
+      <div class="steps-wrap">
+        <div class="step-item"><div class="step-num">1</div><div class="step-text">Las concentraciones iónicas se <b>alteran progresivamente</b> ← respuesta correcta del test</div></div>
+        <div class="step-item"><div class="step-num">2</div><div class="step-text">El Na⁺ se acumula adentro, el K⁺ se pierde afuera</div></div>
+        <div class="step-item"><div class="step-num">3</div><div class="step-text">Se <b>pierde el potencial de reposo</b> y la neurona no puede funcionar</div></div>
+        <div class="step-item"><div class="step-num">4</div><div class="step-text">⚠️ Anestésicos locales bloquean los canales de Na⁺ → <b>imposibilidad de generar potencial de acción</b></div></div>
+      </div>
+    </div>`,
+
+    // 2: POTENCIAL DE ACCIÓN
+    `
+    <div class="card peach">
+      <div class="card-title"><span class="card-icon">🌊</span>Potencial de Acción: Las Fases</div>
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 500 220" class="pot-diagram" xmlns="http://www.w3.org/2000/svg">
+          <!-- axes -->
+          <line x1="50" y1="180" x2="460" y2="180" stroke="#8888a8" stroke-width="1.5"/>
+          <line x1="50" y1="20" x2="50" y2="185" stroke="#8888a8" stroke-width="1.5"/>
+          <!-- axis labels -->
+          <text x="255" y="200" text-anchor="middle" font-size="11" fill="#6b6585" font-family="Nunito,sans-serif">Tiempo (ms)</text>
+          <text x="18" y="105" text-anchor="middle" font-size="10" fill="#6b6585" font-family="Nunito,sans-serif" transform="rotate(-90,18,105)">mV</text>
+          <!-- zero line reference -->
+          <line x1="50" y1="110" x2="460" y2="110" stroke="#c0b8d8" stroke-width="1" stroke-dasharray="4,4"/>
+          <text x="44" y="113" text-anchor="end" font-size="9" fill="#8888a8" font-family="Nunito,sans-serif">0</text>
+          <!-- -70 mV line -->
+          <line x1="50" y1="165" x2="460" y2="165" stroke="#b0c8e8" stroke-width="1" stroke-dasharray="3,3"/>
+          <text x="44" y="168" text-anchor="end" font-size="9" fill="#8888a8" font-family="Nunito,sans-serif">-70</text>
+          <!-- +40 mV line -->
+          <line x1="50" y1="45" x2="460" y2="45" stroke="#e8c0b8" stroke-width="1" stroke-dasharray="3,3"/>
+          <text x="44" y="48" text-anchor="end" font-size="9" fill="#8888a8" font-family="Nunito,sans-serif">+40</text>
+          <!-- action potential curve -->
+          <path d="M 50,165 L 130,165 L 145,155 L 180,45 L 230,45 L 280,170 L 320,175 L 380,165 L 460,165"
+                stroke="#9060d0" stroke-width="2.5" fill="none"/>
+          <!-- labels on curve -->
+          <text x="95" y="160" font-size="9" fill="#5a3d8a" font-family="Nunito,sans-serif" font-weight="700">Reposo</text>
+          <text x="148" y="148" font-size="9" fill="#c06000" font-family="Nunito,sans-serif" font-weight="700">Umbral</text>
+          <text x="192" y="38" font-size="9" fill="#c03030" font-family="Nunito,sans-serif" font-weight="700">Despolarización</text>
+          <text x="240" y="60" font-size="9" fill="#c03030" font-family="Nunito,sans-serif" font-weight="700">(Na⁺ entra)</text>
+          <text x="260" y="135" font-size="9" fill="#2050a0" font-family="Nunito,sans-serif" font-weight="700">Repolarización</text>
+          <text x="262" y="147" font-size="9" fill="#2050a0" font-family="Nunito,sans-serif" font-weight="700">(K⁺ sale)</text>
+          <text x="305" y="180" font-size="9" fill="#207050" font-family="Nunito,sans-serif" font-weight="700">Hiperpolariz.</text>
+          <text x="390" y="160" font-size="9" fill="#5a3d8a" font-family="Nunito,sans-serif" font-weight="700">Reposo</text>
+        </svg>
+      </div>
+    </div>
+    <div class="card sky">
+      <div class="card-title"><span class="card-icon">📋</span>Las 4 Fases del Potencial de Acción</div>
+      <div class="steps-wrap">
+        <div class="step-item"><div class="step-num" style="background:#f5c9b0">1</div><div class="step-text"><b>Reposo:</b> -70 mV. Canales de Na⁺ cerrados, K⁺ tiene algo de permeabilidad.</div></div>
+        <div class="step-item"><div class="step-num" style="background:#f0b8b8">2</div><div class="step-text"><b>Despolarización:</b> Estímulo supera el umbral → canales de Na⁺ se abren → Na⁺ entra → interior se vuelve positivo (~+40 mV).</div></div>
+        <div class="step-item"><div class="step-num" style="background:#b8c8f0">3</div><div class="step-text"><b>Repolarización:</b> Canales Na⁺ se cierran → canales K⁺ se abren → K⁺ sale → potencial vuelve a -70 mV.</div></div>
+        <div class="step-item"><div class="step-num" style="background:#b5e8d5">4</div><div class="step-text"><b>Hiperpolarización:</b> El K⁺ sale en exceso → potencial baja a ~-85 mV momentáneamente, luego regresa a -70 mV.</div></div>
+      </div>
+      <div class="key-fact">🎯 <b>Orden correcto (examen):</b> Reposo → <span class="highlight">Despolarización</span> → <span class="highlight pink">Repolarización</span> → <span class="highlight blue">Hiperpolarización</span> → Reposo</div>
+    </div>`,
+
+    // 3: LEY TODO O NADA
+    `
+    <div class="card sky">
+      <div class="card-title"><span class="card-icon">💥</span>Ley del Todo o Nada</div>
+      <div class="key-fact" style="font-size:1.05rem; text-align:center;">
+        Si el estímulo <b>supera el umbral</b> → potencial de acción <span class="highlight">COMPLETO</span> ✅<br><br>
+        Si el estímulo <b>NO supera el umbral</b> → <span class="highlight pink">NO ocurre nada</span> ❌
+      </div>
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 400 160" xmlns="http://www.w3.org/2000/svg">
+          <!-- left: subthreshold -->
+          <rect x="10" y="10" width="170" height="140" fill="#fde8e8" rx="14"/>
+          <text x="95" y="35" text-anchor="middle" font-size="12" font-family="Nunito,sans-serif" font-weight="700" fill="#902020">Estímulo DÉBIL</text>
+          <text x="95" y="52" text-anchor="middle" font-size="10" font-family="Nunito,sans-serif" fill="#902020">(no supera umbral)</text>
+          <line x1="30" y1="110" x2="170" y2="110" stroke="#c08080" stroke-width="1.5"/>
+          <text x="30" y="120" font-size="9" fill="#c08080" font-family="Nunito,sans-serif">-70 mV _______________</text>
+          <!-- small blip -->
+          <path d="M 70,110 L 80,100 L 90,110 L 160,110" stroke="#e05050" stroke-width="2" fill="none"/>
+          <text x="95" y="140" text-anchor="middle" font-size="10" font-family="Nunito,sans-serif" fill="#c03030">❌ Sin potencial de acción</text>
+          <!-- right: suprathreshold -->
+          <rect x="220" y="10" width="170" height="140" fill="#d0f5e8" rx="14"/>
+          <text x="305" y="35" text-anchor="middle" font-size="12" font-family="Nunito,sans-serif" font-weight="700" fill="#205040">Estímulo FUERTE</text>
+          <text x="305" y="52" text-anchor="middle" font-size="10" font-family="Nunito,sans-serif" fill="#205040">(supera umbral)</text>
+          <line x1="240" y1="110" x2="380" y2="110" stroke="#60c090" stroke-width="1.5"/>
+          <path d="M 270,110 L 285,105 L 300,50 L 320,50 L 345,115 L 370,110" stroke="#20a060" stroke-width="2.5" fill="none"/>
+          <text x="305" y="140" text-anchor="middle" font-size="10" font-family="Nunito,sans-serif" fill="#205040">✅ Potencial de acción completo</text>
+        </svg>
+      </div>
+      <div class="key-fact">🧠 <b>Importante:</b> Un estímulo más fuerte NO produce un potencial de acción "más grande". Siempre es igual de grande. La diferencia está en la <span class="highlight">frecuencia</span> de los potenciales.</div>
+    </div>
+    <div class="card rose">
+      <div class="card-title"><span class="card-icon">🏃</span>Conducción del Impulso</div>
+      <div class="steps-wrap">
+        <div class="step-item"><div class="step-num">1</div><div class="step-text"><b>Vaina de mielina:</b> Acelera la conducción por el mecanismo de conducción <b>saltatoria</b> (el impulso salta entre los nodos de Ranvier).</div></div>
+        <div class="step-item"><div class="step-num">2</div><div class="step-text"><b>Sin mielina:</b> Conducción lenta, continua a lo largo del axón.</div></div>
+        <div class="step-item"><div class="step-num">3</div><div class="step-text">Las <b>dendritas</b> reciben señales; el <b>axón</b> las conduce; las <b>vesículas sinápticas</b> liberan neurotransmisores.</div></div>
+      </div>
+    </div>`,
+
+    // 4: FLASHCARDS
+    buildFlashcards(),
+
+    // 5: QUIZ
+    buildQuiz()
+  ];
+}
+
+function buildFlashcards() {
+  return `
+  <div class="card rose">
+    <div class="card-title"><span class="card-icon">🃏</span>Flashcards de Repaso</div>
+    <p style="font-size:0.85rem; color:var(--text-light); margin-bottom:14px;">Toca la tarjeta para ver la respuesta. Navega con los botones.</p>
+    <div class="flashcard-wrap">
+      <div class="flashcard" id="flashcardEl" onclick="flipCard()">
+        <div class="flashcard-face flashcard-front" id="flashFront">
+          <div id="flashFrontText"></div>
+          <div class="flash-hint">👆 Toca para ver la respuesta</div>
+        </div>
+        <div class="flashcard-face flashcard-back" id="flashBack">
+          <div id="flashBackText" style="white-space:pre-line; font-weight:700;"></div>
+        </div>
+      </div>
+    </div>
+    <div class="flash-nav">
+      <button class="flash-btn" onclick="flashNav(-1)">← Anterior</button>
+      <span class="flash-counter" id="flashCounter">1 / ${flashcardsData.length}</span>
+      <button class="flash-btn" onclick="flashNav(1)">Siguiente →</button>
+    </div>
+  </div>`;
+}
+
+function buildQuiz() {
+  let html = `<div class="card lemon">
+    <div class="card-title"><span class="card-icon">✏️</span>Quiz Final — Preguntas del Test</div>
+    <p style="font-size:0.85rem; color:var(--text-light); margin-bottom:16px;">Elige la respuesta correcta en cada pregunta.</p>`;
+  quizData.forEach((q, qi) => {
+    html += `<div class="quiz-q" id="quiz${qi}">
+      <div class="q-text">❓ ${qi + 1}. ${q.q}</div>
+      <div class="quiz-options">`;
+    q.opts.forEach((opt, oi) => {
+      html += `<button class="quiz-opt" onclick="checkAnswer(${qi},${oi})" id="qo${qi}_${oi}">${opt}</button>`;
+    });
+    html += `</div>
+      <div class="quiz-feedback" id="qf${qi}"></div>
+    </div>`;
+  });
+  html += `<div id="quizScore" style="display:none; text-align:center; padding:20px 0; font-family:'Fredoka One',cursive; font-size:1.4rem; color:#5a3d8a;"></div>`;
+  html += `</div>`;
+  return html;
+}
+
+// ═══════════════════════════════════════
+//  FLASHCARD STATE
+// ═══════════════════════════════════════
+let flashIdx = 0;
+let flashFlipped = false;
+
+function renderFlash() {
+  const card = flashcardsData[flashIdx];
+  document.getElementById('flashFrontText').textContent = card.front;
+  document.getElementById('flashBackText').textContent = card.back;
+  document.getElementById('flashCounter').textContent = `${flashIdx + 1} / ${flashcardsData.length}`;
+  const el = document.getElementById('flashcardEl');
+  if (el) { el.classList.remove('flipped'); flashFlipped = false; }
+}
+
+function flipCard() {
+  const el = document.getElementById('flashcardEl');
+  if (!el) return;
+  flashFlipped = !flashFlipped;
+  el.classList.toggle('flipped', flashFlipped);
+  playFlip();
+}
+
+function flashNav(dir) {
+  flashIdx = (flashIdx + dir + flashcardsData.length) % flashcardsData.length;
+  renderFlash();
+  playClick();
+}
+
+// ═══════════════════════════════════════
+//  QUIZ STATE
+// ═══════════════════════════════════════
+let quizAnswered = new Array(quizData.length).fill(false);
+let quizScore = 0;
+
+function checkAnswer(qi, oi) {
+  if (quizAnswered[qi]) return;
+  quizAnswered[qi] = true;
+  const correct = quizData[qi].ans === oi;
+  if (correct) { quizScore++; playSuccess(); } else playError();
+
+  quizData[qi].opts.forEach((_, i) => {
+    const btn = document.getElementById(`qo${qi}_${i}`);
+    if (i === quizData[qi].ans) btn.classList.add('correct');
+    else if (i === oi) btn.classList.add('wrong');
+    btn.disabled = true;
+  });
+
+  const fb = document.getElementById(`qf${qi}`);
+  fb.className = 'quiz-feedback show ' + (correct ? 'ok' : 'no');
+  fb.textContent = correct ? quizData[qi].exp : `❌ Incorrecto. ${quizData[qi].exp}`;
+
+  if (quizAnswered.every(Boolean)) {
+    const sc = document.getElementById('quizScore');
+    sc.style.display = 'block';
+    const pct = Math.round(quizScore / quizData.length * 100);
+    const nota = (1 + (quizScore / quizData.length) * 6).toFixed(1);
+    sc.innerHTML = `🎉 Resultado: ${quizScore}/${quizData.length} correctas (${pct}%)<br>Nota aprox: ${nota}`;
+    if (pct >= 70) playSuccess(); else playError();
+  }
+}
+
+// ═══════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════
+let currentSection = 0;
+const contents = [];
+const completedSections = new Set();
+
+function initApp() {
+  // Build bubbles
+  const bb = document.getElementById('bgBubbles');
+  const colors = ['#c9b8e8','#b5e8d5','#f5c9b0','#b8d8f0','#f0b8c8','#f0e8a0'];
+  for (let i = 0; i < 8; i++) {
+    const b = document.createElement('div');
+    b.className = 'bubble';
+    const size = 60 + Math.random() * 120;
+    b.style.cssText = `width:${size}px;height:${size}px;background:${colors[i%colors.length]};left:${Math.random()*100}%;animation-duration:${12+Math.random()*18}s;animation-delay:${-Math.random()*20}s;`;
+    bb.appendChild(b);
+  }
+
+  // Build nav
+  const navBar = document.getElementById('navBar');
+  sections.forEach((s, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'nav-btn' + (i === 0 ? ' active' : '');
+    btn.id = `nav-${i}`;
+    btn.textContent = `${s.emoji} ${s.title}`;
+    btn.onclick = () => goTo(i);
+    navBar.appendChild(btn);
+  });
+
+  // Build content
+  const contentsData = buildContent();
+  const mainEl = document.getElementById('mainContent');
+  sections.forEach((s, i) => {
+    const div = document.createElement('div');
+    div.className = 'section-card' + (i === 0 ? ' active' : '');
+    div.id = `sec-${i}`;
+    div.innerHTML = contentsData[i];
+    mainEl.appendChild(div);
+  });
+
+  updateNav();
+  if (currentSection === 4) renderFlash();
+}
+
+function goTo(idx) {
+  if (idx < 0 || idx >= sections.length) return;
+  completedSections.add(currentSection);
+  document.getElementById(`sec-${currentSection}`).classList.remove('active');
+  document.getElementById(`nav-${currentSection}`).classList.remove('active');
+  if (currentSection !== idx) document.getElementById(`nav-${currentSection}`).classList.add('done');
+  currentSection = idx;
+  document.getElementById(`sec-${currentSection}`).classList.add('active');
+  document.getElementById(`nav-${currentSection}`).classList.add('active');
+  document.getElementById(`nav-${currentSection}`).classList.remove('done');
+  updateNav();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  playNav();
+  if (currentSection === 4) renderFlash();
+}
+
+function navigate(dir) {
+  goTo(currentSection + dir);
+}
+
+function updateNav() {
+  document.getElementById('sectionIndicator').textContent = `${currentSection + 1} / ${sections.length}`;
+  // Scroll nav to active
+  const activeBtn = document.getElementById(`nav-${currentSection}`);
+  if (activeBtn) activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+}
+
+// ═══════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════
+window.addEventListener('DOMContentLoaded', initApp);
+</script>
+</body>
+</html>
