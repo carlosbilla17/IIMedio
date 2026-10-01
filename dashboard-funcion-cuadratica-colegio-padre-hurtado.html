@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Función cuadrática | Colegio Padre Hurtado</title>
+<style>
+:root{--ink:#243142;--blue:#dceafb;--yellow:#fff0bd;--green:#dff2df;--pink:#f3dfea;--bg:#faf8f4;--white:#fff}
+*{box-sizing:border-box} body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:white;padding:18px 5vw;border-bottom:1px solid #ddd;position:sticky;top:0;z-index:3}
+header h1{margin:0;font-size:clamp(25px,4vw,40px)} header p{margin:6px 0 0}
+main{max-width:1080px;margin:auto;padding:24px 5vw 50px}.card{background:white;border:1px solid #ddd;border-radius:18px;padding:20px;margin:16px 0;box-shadow:0 5px 16px #0000000a}
+.phase{display:inline-block;padding:6px 11px;border-radius:20px;font-weight:bold;background:var(--blue)}
+.step{border-left:6px solid #9eb9dc;padding:12px 15px;margin:14px 0;background:#f8fbff;border-radius:10px}
+.formula{font-size:25px;font-weight:bold;text-align:center;background:#f3f3f3;padding:13px;border-radius:12px;margin:12px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
+button{border:0;border-radius:10px;padding:10px 14px;background:var(--ink);color:white;font-weight:bold;cursor:pointer}
+.answer{display:none;margin-top:10px;padding:10px;border-radius:9px;background:var(--green)}
+.warn{background:var(--yellow);padding:11px;border-radius:10px}.pink{background:var(--pink);padding:11px;border-radius:10px}
+canvas{width:100%;max-width:650px;border:1px solid #ccc;border-radius:12px;background:#fff}
+table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:9px;text-align:center}footer{text-align:center;padding:20px}
+</style></head><body>
+<header><h1>Función cuadrática: análisis paso a paso</h1><p><b>Colegio Padre Hurtado</b> · Profesor Carlos Villa</p></header>
+<main>
+<section class="card"><span class="phase">INICIO · Activación</span>
+<h2>¿Qué sabemos de una parábola?</h2>
+<p>Hoy aprenderemos un <b>orden fijo de 5 pasos</b> para analizar una función cuadrática y después hacer su bosquejo.</p>
+<div class="formula">f(x)=ax²+bx+c</div>
+<div class="grid"><div><b>Pregunta relámpago:</b><p>¿Qué coeficiente indica si la parábola abre hacia arriba o hacia abajo?</p><button onclick="show('i1')">Ver respuesta</button><div id="i1" class="answer">El coeficiente <b>a</b>.</div></div>
+<div><b>Antes de comenzar:</b><p>Si a es negativo, ¿qué forma tendrá?</p><button onclick="show('i2')">Ver respuesta</button><div id="i2" class="answer">Abre hacia abajo: ∩</div></div></div>
+</section>
+
+<section class="card"><span class="phase">DESARROLLO · Ejercicio modelo</span>
+<h2>Analicemos exactamente este ejercicio</h2><div class="formula">C(t)=10t−2t²</div>
+<p>Primero lo ordenamos como <b>at²+bt+c</b>:</p><div class="formula">C(t)=−2t²+10t+0</div>
+<p class="warn"><b>Entonces:</b> a=−2, b=10 y c=0. Aunque no veamos el término independiente, c vale 0.</p>
+</section>
+
+<section class="card"><h2>1. Concavidad</h2>
+<div class="step"><b>Solo observamos a.</b><br>a=−2 &lt; 0 → la parábola abre hacia abajo <b>∩</b>.</div>
+<p><b>Conclusión:</b> tendrá un punto máximo.</p>
+</section>
+
+<section class="card"><h2>2. Eje de simetría</h2>
+<p>Usamos la fórmula:</p><div class="formula">t = −b / 2a</div>
+<div class="step">t = −10 / [2·(−2)] = −10/−4 = <b>2,5</b></div>
+<p>El eje de simetría es <b>t=2,5</b>. Esa será también la primera coordenada del vértice.</p>
+<p class="pink"><b>Cuidado con los signos:</b> el numerador es −b, por eso b=10 se transforma en −10.</p>
+</section>
+
+<section class="card"><h2>3. Intersección con el eje Y</h2>
+<p>El corte con Y se obtiene con <b>(0,c)</b>.</p><div class="step">c=0 → intersección con Y = <b>(0,0)</b></div>
+<p>También puedes comprobarlo reemplazando t=0: C(0)=10·0−2·0²=0.</p>
+</section>
+
+<section class="card"><h2>4. Vértice</h2>
+<p>Ya sabemos que la primera coordenada es <b>t=2,5</b>. Ahora necesitamos C(2,5).</p>
+<div class="step">C(2,5)=10·(2,5)−2·(2,5)²<br>=25−2·6,25<br>=25−12,5<br>=<b>12,5</b></div>
+<div class="formula">V=(2,5 ; 12,5)</div>
+<p>Como la parábola abre hacia abajo, este vértice representa el <b>máximo</b>.</p>
+</section>
+
+<section class="card"><h2>5. Intersecciones con el eje X</h2>
+<p>En el eje X, el valor de la función es 0. Por eso:</p>
+<div class="step">10t−2t²=0<br>t(10−2t)=0</div>
+<p>Ahora usamos el principio del producto cero:</p>
+<table><tr><th>Primera posibilidad</th><th>Segunda posibilidad</th></tr><tr><td>t=0</td><td>10−2t=0 → 10=2t → t=5</td></tr></table>
+<div class="formula">Intersecciones: (0,0) y (5,0)</div>
+</section>
+
+<section class="card"><h2>6. Bosquejo de la gráfica</h2>
+<p>Ahora juntamos toda la información. Marca primero los puntos importantes y recién después dibuja la curva.</p>
+<ul><li>Abre hacia abajo ∩.</li><li>Eje de simetría: t=2,5.</li><li>Vértice: (2,5 ; 12,5).</li><li>Corte con Y: (0,0).</li><li>Cortes con X: (0,0) y (5,0).</li></ul>
+<canvas id="graph" width="760" height="430"></canvas>
+</section>
+
+<section class="card"><h2>¿Qué significa en el problema?</h2>
+<p>Si C(t) representa la cantidad de clientes de un banco a través del tiempo:</p>
+<div class="grid">
+<div><b>¿Cuándo alcanza el máximo?</b><p>En t=2,5.</p></div>
+<div><b>¿Cuál es el máximo?</b><p>C(2,5)=12,5.</p></div>
+<div><b>¿Cuándo vuelve a 0?</b><p>En t=5.</p></div>
+</div>
+<p class="warn">Siempre interpreta las unidades según el enunciado: años, clientes, miles de clientes, etc. La matemática entrega los valores; el contexto les da significado.</p>
+</section>
+
+<section class="card"><span class="phase">PRÁCTICA ANTES DEL CIERRE</span>
+<h2>Ordena mentalmente el procedimiento</h2>
+<p>Para <b>f(x)=x²−6x+5</b>, intenta encontrar los cinco elementos siguiendo exactamente el mismo orden.</p>
+<button onclick="show('practice')">Mostrar comprobación</button>
+<div id="practice" class="answer">1) Concavidad: arriba. 2) Eje: x=3. 3) Corte con Y: (0,5). 4) Vértice: (3,−4). 5) Cortes con X: (1,0) y (5,0).</div>
+</section>
+
+<section class="card"><span class="phase">CIERRE · Síntesis y metacognición</span>
+<h2>La receta que debes recordar</h2>
+<ol><li><b>Concavidad:</b> mirar el signo de a.</li><li><b>Eje de simetría:</b> x=−b/(2a).</li><li><b>Corte con Y:</b> (0,c).</li><li><b>Vértice:</b> usar el valor del eje y reemplazarlo en la función.</li><li><b>Cortes con X:</b> igualar la función a 0 y resolver.</li><li><b>Bosquejo:</b> ubicar los puntos y respetar concavidad y simetría.</li></ol>
+<div class="grid"><div class="pink"><b>Ticket de salida:</b><br>¿Qué paso puedes hacer solo mirando los coeficientes?</div><div class="warn"><b>Metacognición:</b><br>¿En qué paso debes tener más cuidado con los signos?</div></div>
+</section>
+</main><footer>Colegio Padre Hurtado · Profesor Carlos Villa</footer>
+<script>
+function show(id){document.getElementById(id).style.display='block'}
+const c=document.getElementById('graph'),g=c.getContext('2d'),W=c.width,H=c.height;
+function X(v){return 90+v*105} function Y(v){return H-55-v*23}
+g.strokeStyle='#d2d2d2';g.lineWidth=1;
+for(let i=-1;i<=6;i++){g.beginPath();g.moveTo(X(i),25);g.lineTo(X(i),H-35);g.stroke()}
+for(let j=0;j<=14;j+=2){g.beginPath();g.moveTo(45,Y(j));g.lineTo(W-35,Y(j));g.stroke()}
+g.strokeStyle='#222';g.lineWidth=2;g.beginPath();g.moveTo(45,Y(0));g.lineTo(W-35,Y(0));g.stroke();g.beginPath();g.moveTo(X(0),20);g.lineTo(X(0),H-35);g.stroke();
+g.setLineDash([6,6]);g.strokeStyle='#777';g.beginPath();g.moveTo(X(2.5),25);g.lineTo(X(2.5),Y(0));g.stroke();g.setLineDash([]);
+g.strokeStyle='#334d6e';g.lineWidth=4;g.beginPath();for(let t=0;t<=5;t+=.02){let y=10*t-2*t*t;if(t===0)g.moveTo(X(t),Y(y));else g.lineTo(X(t),Y(y))}g.stroke();
+g.fillStyle='#111';[[0,0],[2.5,12.5],[5,0]].forEach(p=>{g.beginPath();g.arc(X(p[0]),Y(p[1]),6,0,Math.PI*2);g.fill()});
+g.font='16px Arial';g.fillText('(0,0)',X(0)+8,Y(0)-10);g.fillText('V(2,5 ; 12,5)',X(2.5)+10,Y(12.5)-8);g.fillText('(5,0)',X(5)-25,Y(0)-10);g.fillText('t = 2,5',X(2.5)+8,Y(4));
+</script></body></html>
